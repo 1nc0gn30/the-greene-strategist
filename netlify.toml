@@ -4,7 +4,9 @@
 
 [functions]
   directory = "netlify/functions"
-  node_bundler = "esm"
+
+  [functions."*"]
+  node_bundler = "esbuild"
 
 [[redirects]]
   from = "/api/strategist"

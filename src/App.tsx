@@ -53,7 +53,7 @@ export default function App() {
       </div>
 
       <nav className="fixed top-0 w-full z-40 bg-black/70 backdrop-blur-xl border-b border-zinc-800/70">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
           <button
             className="flex items-center gap-3 cursor-pointer group"
             onClick={() => {
@@ -65,7 +65,7 @@ export default function App() {
               <Shield className="text-black" size={24} />
             </div>
             <div>
-              <h1 className="text-lg font-black tracking-tighter uppercase leading-none text-white">The Greene</h1>
+              <h1 className="text-base sm:text-lg font-black tracking-tighter uppercase leading-none text-white">The Greene</h1>
               <p className="text-[10px] text-zinc-500 tracking-[0.3em] uppercase leading-none mt-1">Strategist</p>
             </div>
           </button>
@@ -119,7 +119,7 @@ export default function App() {
               <header className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
                 <div className="lg:col-span-7 space-y-6">
                   <p className="text-xs font-bold uppercase tracking-[0.35em] text-orange-400">Strategic Philosophy & Bibliography</p>
-                  <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.95]">
+                  <h2 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter leading-[0.95]">
                     Master the <span className="text-orange-500">Mechanics</span> of Power.
                   </h2>
                   <p className="text-zinc-300 text-lg leading-relaxed max-w-2xl">
@@ -306,7 +306,7 @@ export default function App() {
                     </div>
                     <div className="space-y-4 text-white">
                       <span className="text-xs font-bold tracking-[0.4em] uppercase text-white/40">{selectedBook.year}</span>
-                      <h2 className="text-5xl font-black tracking-tighter leading-none">{selectedBook.title}</h2>
+                    <h2 className="text-3xl sm:text-5xl font-black tracking-tighter leading-none">{selectedBook.title}</h2>
                     </div>
                   </div>
 

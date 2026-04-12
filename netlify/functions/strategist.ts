@@ -31,7 +31,7 @@ export const handler = async (event: NetlifyEvent) => {
   }
 
   const apiKey = process.env.OLLAMA_API_KEY;
-  const model = process.env.OLLAMA_MODEL || 'gpt-oss:120b';
+  const model = process.env.OLLAMA_MODEL || 'gemma4';
   const baseUrl = (process.env.OLLAMA_BASE_URL || 'https://api.ollama.com/v1').replace(/\/+$/, '');
 
   if (!apiKey) {

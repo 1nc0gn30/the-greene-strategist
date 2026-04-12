@@ -27,7 +27,7 @@ View your app in AI Studio: https://ai.studio/apps/5430aa62-476b-489e-bf39-96b7f
   - `OLLAMA_BASE_URL` (default: `https://api.ollama.com/v1`)
     - Native Ollama API: `https://api.ollama.com/api`
     - OpenAI-compatible API: `https://api.ollama.com/v1`
-  - `OLLAMA_MODEL` (default: `gpt-oss:120b`)
+  - `OLLAMA_MODEL` (default: `gemma4`)
 
 ### Request shape
 ```json

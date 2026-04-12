@@ -1,4 +1,19 @@
-export async function askStrategist(prompt: string, bookTitle: string, bookSummary: string, bookAnalysis: string) {
+export type AIProvider = 'openai' | 'gemini' | 'ollama';
+
+export interface StrategistProviderConfig {
+  provider: AIProvider;
+  apiKey: string;
+  model: string;
+  ollamaBaseUrl?: string;
+}
+
+export async function askStrategist(
+  prompt: string,
+  bookTitle: string,
+  bookSummary: string,
+  bookAnalysis: string,
+  config: StrategistProviderConfig,
+) {
   const response = await fetch('/api/strategist', {
     method: 'POST',
     headers: {
@@ -9,6 +24,10 @@ export async function askStrategist(prompt: string, bookTitle: string, bookSumma
       bookTitle,
       bookSummary,
       bookAnalysis,
+      provider: config.provider,
+      apiKey: config.apiKey,
+      model: config.model,
+      ollamaBaseUrl: config.ollamaBaseUrl,
     }),
   });
 

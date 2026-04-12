@@ -17,17 +17,20 @@ View your app in AI Studio: https://ai.studio/apps/5430aa62-476b-489e-bf39-96b7f
    `npm install`
 2. Run the app:
    `npm run dev`
-3. For local Netlify Function testing, run `netlify dev` and set `OLLAMA_API_KEY` in your shell.
+3. For local Netlify Function testing, run `netlify dev`.
 
-## Netlify AI Endpoint (Server-side Secret)
+## Netlify AI Endpoint (Bring Your Own Key)
 - Function path: `netlify/functions/strategist.ts`
 - Public endpoint: `POST /api/strategist` (redirected in `netlify.toml`)
-- Required env var: `OLLAMA_API_KEY`
-- Optional env vars:
-  - `OLLAMA_BASE_URL` (default: `https://api.ollama.com/v1`)
+- No server-side provider secret is required.
+- User must supply:
+  - `provider`: `openai`, `gemini`, or `ollama`
+  - `apiKey`: user-owned API key for the selected provider
+  - `model`: model id for the selected provider
+- Optional for Ollama:
+  - `ollamaBaseUrl` (default: `https://api.ollama.com/v1`)
     - Native Ollama API: `https://api.ollama.com/api`
     - OpenAI-compatible API: `https://api.ollama.com/v1`
-  - `OLLAMA_MODEL` (default: `gemma4`)
 
 ### Request shape
 ```json
@@ -35,7 +38,11 @@ View your app in AI Studio: https://ai.studio/apps/5430aa62-476b-489e-bf39-96b7f
   "prompt": "How should I apply Law 3 at work?",
   "bookTitle": "The 48 Laws of Power",
   "bookSummary": "...",
-  "bookAnalysis": "..."
+  "bookAnalysis": "...",
+  "provider": "openai",
+  "apiKey": "sk-...",
+  "model": "gpt-4o-mini",
+  "ollamaBaseUrl": "https://api.ollama.com/v1"
 }
 ```
 
@@ -54,10 +61,10 @@ Error responses:
 ```
 
 ### Local dev flow
-1. Set env vars in shell or `.env` used by Netlify CLI.
-2. Run `netlify dev`.
-3. Open the app via the Netlify dev URL so `/api/strategist` resolves to the function.
+1. Run `netlify dev`.
+2. Open the app via the Netlify dev URL so `/api/strategist` resolves to the function.
+3. In chat, choose provider, enter your own API key, and select a model.
 
 ### Deployment behavior
-- The browser only calls `/api/strategist`; your Ollama API key stays server-side in Netlify env.
-- If `OLLAMA_API_KEY` is missing, the function returns a safe coming-soon style error.
+- The browser only calls `/api/strategist`.
+- The function uses the user-provided key for that request and does not require a Netlify provider API secret.

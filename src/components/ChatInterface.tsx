@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { Send, Bot, User, Loader2, X } from 'lucide-react';
-import { askStrategist } from '../lib/gemini';
+import { askStrategist, type AIProvider } from '../lib/gemini';
 import Markdown from 'react-markdown';
 import { cn } from '../lib/utils';
 
@@ -18,11 +18,42 @@ interface ChatInterfaceProps {
   onClose: () => void;
 }
 
+const PROVIDER_DEFAULT_MODELS: Record<AIProvider, string> = {
+  openai: 'gpt-4o-mini',
+  gemini: 'gemini-1.5-flash',
+  ollama: 'gemma4',
+};
+
+const PROVIDER_MODEL_OPTIONS: Record<AIProvider, string[]> = {
+  openai: ['gpt-4o-mini', 'gpt-4.1-mini', 'gpt-4.1'],
+  gemini: ['gemini-1.5-flash', 'gemini-1.5-pro'],
+  ollama: ['gemma4', 'llama3.1', 'qwen2.5'],
+};
+
+const API_KEY_HINTS: Record<AIProvider, string> = {
+  openai: 'OpenAI key usually starts with sk-',
+  gemini: 'Gemini key usually starts with AIza',
+  ollama: 'Use your Ollama API key',
+};
+
+function isApiKeyValidForProvider(provider: AIProvider, apiKey: string): boolean {
+  const trimmed = apiKey.trim();
+  if (!trimmed) return false;
+  if (provider === 'openai') return /^sk-[a-zA-Z0-9_-]{20,}$/.test(trimmed);
+  if (provider === 'gemini') return /^AIza[a-zA-Z0-9_-]{20,}$/.test(trimmed);
+  return trimmed.length >= 10;
+}
+
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ bookTitle, bookSummary, bookAnalysis, isOpen, onClose }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [provider, setProvider] = useState<AIProvider>('openai');
+  const [apiKey, setApiKey] = useState('');
+  const [model, setModel] = useState(PROVIDER_DEFAULT_MODELS.openai);
+  const [ollamaBaseUrl, setOllamaBaseUrl] = useState('https://api.ollama.com/v1');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isApiKeyValid = isApiKeyValidForProvider(provider, apiKey);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -32,15 +63,35 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ bookTitle, bookSum
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+    if (!isApiKeyValid) {
+      setMessages(prev => [...prev, { role: 'assistant', content: `Enter a valid ${provider} API key before sending.` }]);
+      return;
+    }
+    if (!model.trim()) {
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Enter a model name for your selected provider.' }]);
+      return;
+    }
 
     const userMessage = input.trim();
     setInput('');
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
-
-    const response = await askStrategist(userMessage, bookTitle, bookSummary, bookAnalysis);
-    setMessages(prev => [...prev, { role: 'assistant', content: response }]);
-    setIsLoading(false);
+    try {
+      const response = await askStrategist(userMessage, bookTitle, bookSummary, bookAnalysis, {
+        provider,
+        apiKey: apiKey.trim(),
+        model: model.trim(),
+        ollamaBaseUrl: provider === 'ollama' ? ollamaBaseUrl.trim() : undefined,
+      });
+      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+    } catch {
+      setMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: 'Network error while contacting The Strategist. Please try again.' },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -73,7 +124,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ bookTitle, bookSum
           {messages.length === 0 && (
             <div className="text-center py-10">
               <p className="text-zinc-500 text-sm italic">"The mind must not settle into any one way of thinking."</p>
-              <p className="text-zinc-600 text-xs mt-2">— Ask me anything about Greene's strategies. If server AI is not configured, chat will stay in coming-soon mode.</p>
+              <p className="text-zinc-600 text-xs mt-2">— Ask me anything about Greene&apos;s strategies. Connect your own Gemini, OpenAI, or Ollama API key below.</p>
             </div>
           )}
           {messages.map((msg, i) => (
@@ -109,6 +160,68 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ bookTitle, bookSum
         </div>
 
         <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+            <label className="text-[11px] uppercase tracking-wider text-zinc-500">
+              Provider
+              <select
+                value={provider}
+                onChange={(e) => {
+                  const nextProvider = e.target.value as AIProvider;
+                  setProvider(nextProvider);
+                  setModel(PROVIDER_DEFAULT_MODELS[nextProvider]);
+                }}
+                className="mt-1 w-full bg-zinc-800 border border-zinc-700 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-orange-500 transition-colors"
+              >
+                <option value="openai">OpenAI</option>
+                <option value="gemini">Gemini</option>
+                <option value="ollama">Ollama</option>
+              </select>
+            </label>
+            <label className="text-[11px] uppercase tracking-wider text-zinc-500">
+              Model
+              <input
+                type="text"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder="Model name"
+                list={`models-${provider}`}
+                className="mt-1 w-full bg-zinc-800 border border-zinc-700 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-orange-500 transition-colors"
+              />
+              <datalist id={`models-${provider}`}>
+                {PROVIDER_MODEL_OPTIONS[provider].map((modelOption) => (
+                  <option key={modelOption} value={modelOption} />
+                ))}
+              </datalist>
+            </label>
+          </div>
+          <div className="grid grid-cols-1 gap-2 mb-3">
+            <label className="text-[11px] uppercase tracking-wider text-zinc-500">
+              API Key Type
+              <input
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder={API_KEY_HINTS[provider]}
+                className="mt-1 w-full bg-zinc-800 border border-zinc-700 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-orange-500 transition-colors"
+              />
+            </label>
+            {!isApiKeyValid && apiKey.trim() && (
+              <p className="text-[11px] text-amber-400">{API_KEY_HINTS[provider]}</p>
+            )}
+            <p className="text-[11px] text-zinc-500">Bring your own key is required. Keys are only used to process your request.</p>
+            {provider === 'ollama' && (
+              <label className="text-[11px] uppercase tracking-wider text-zinc-500">
+                Ollama Base URL
+                <input
+                  type="text"
+                  value={ollamaBaseUrl}
+                  onChange={(e) => setOllamaBaseUrl(e.target.value)}
+                  placeholder="https://api.ollama.com/v1"
+                  className="mt-1 w-full bg-zinc-800 border border-zinc-700 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-orange-500 transition-colors"
+                />
+              </label>
+            )}
+          </div>
           <div className="relative">
             <input
               type="text"
@@ -120,7 +233,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ bookTitle, bookSum
             />
             <button
               onClick={handleSend}
-              disabled={isLoading || !input.trim()}
+              disabled={isLoading || !input.trim() || !isApiKeyValid || !model.trim()}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-orange-500 hover:text-orange-400 disabled:text-zinc-600 transition-colors"
             >
               <Send size={18} />

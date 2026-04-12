@@ -1,0 +1,36 @@
+@import './styles/vendor/modern-normalize.css';
+@import './styles/vendor/open-props.min.css';
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-black text-zinc-100 antialiased;
+    background-image: radial-gradient(circle at 50% -10%, rgba(251, 146, 60, 0.1), transparent 55%);
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  @apply bg-zinc-800 rounded-full;
+}

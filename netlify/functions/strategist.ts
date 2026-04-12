@@ -25,7 +25,7 @@ export const handler = async (event: NetlifyEvent) => {
 
   const apiKey = process.env.OLLAMA_API_KEY;
   const model = process.env.OLLAMA_MODEL || 'gpt-oss:120b';
-  const baseUrl = (process.env.OLLAMA_BASE_URL || 'https://ollama.com').replace(/\/+$/, '');
+  const baseUrl = (process.env.OLLAMA_BASE_URL || 'https://ollama.com/api').replace(/\/+$/, '');
 
   if (!apiKey) {
     return json(503, {
@@ -64,7 +64,10 @@ Rules:
 - Use Markdown formatting where useful.`;
 
   try {
-    const upstream = await fetch(`${baseUrl}/api/chat`, {
+    const useOpenAICompat = baseUrl.endsWith('/v1');
+    const endpoint = useOpenAICompat ? `${baseUrl}/chat/completions` : `${baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`}/chat`;
+
+    const upstream = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -84,20 +87,31 @@ Rules:
     const payload = (await upstream.json().catch(() => ({}))) as {
       message?: { content?: string };
       response?: string;
+      choices?: Array<{ message?: { content?: string | Array<{ text?: string }> } }>;
       error?: { message?: string };
     };
 
     if (!upstream.ok) {
-      const upstreamMessage = payload.error?.message || `Upstream error (${upstream.status}).`;
+      const upstreamMessage = payload.error?.message || `upstream error (${upstream.status})`;
       console.error('strategist upstream error:', upstream.status, upstreamMessage);
-      return json(502, { error: 'The Strategist is currently unavailable. Please try again later.' });
+      return json(502, {
+        error: `The Strategist is currently unavailable. Upstream details: ${upstream.status}: ${upstreamMessage}`,
+      });
     }
 
-    const text = (payload.message?.content || payload.response || '').trim();
-
+    const openAIContent = payload.choices?.[0]?.message?.content;
+    const openAIText =
+      typeof openAIContent === 'string'
+        ? openAIContent
+        : Array.isArray(openAIContent)
+          ? openAIContent.map((part) => part.text || '').join('')
+          : '';
+    const text = (payload.message?.content || payload.response || openAIText || '').trim();
     return json(200, { text: text || 'No response generated.' });
   } catch (error) {
     console.error('strategist function error:', error);
-    return json(502, { error: 'The Strategist is currently unavailable. Please try again later.' });
+    return json(502, {
+      error: 'The Strategist is currently unavailable. Check OLLAMA_API_KEY, OLLAMA_BASE_URL, and OLLAMA_MODEL.',
+    });
   }
 };

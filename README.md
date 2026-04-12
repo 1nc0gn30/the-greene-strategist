@@ -24,9 +24,9 @@ View your app in AI Studio: https://ai.studio/apps/5430aa62-476b-489e-bf39-96b7f
 - Public endpoint: `POST /api/strategist` (redirected in `netlify.toml`)
 - Required env var: `OLLAMA_API_KEY`
 - Optional env vars:
-  - `OLLAMA_BASE_URL` (default: `https://ollama.com/api`)
-    - Native Ollama API: `https://ollama.com/api`
-    - OpenAI-compatible API: `https://ollama.com/v1`
+  - `OLLAMA_BASE_URL` (default: `https://api.ollama.com/v1`)
+    - Native Ollama API: `https://api.ollama.com/api`
+    - OpenAI-compatible API: `https://api.ollama.com/v1`
   - `OLLAMA_MODEL` (default: `gpt-oss:120b`)
 
 ### Request shape

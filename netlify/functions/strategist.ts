@@ -10,6 +10,13 @@ type RequestBody = {
   bookAnalysis?: string;
 };
 
+type UpstreamPayload = {
+  message?: { content?: string };
+  response?: string;
+  choices?: Array<{ message?: { content?: string | Array<{ text?: string }> } }>;
+  error?: { message?: string };
+};
+
 const json = (statusCode: number, body: Record<string, unknown>) => ({
   statusCode,
   headers: {
@@ -25,7 +32,7 @@ export const handler = async (event: NetlifyEvent) => {
 
   const apiKey = process.env.OLLAMA_API_KEY;
   const model = process.env.OLLAMA_MODEL || 'gpt-oss:120b';
-  const baseUrl = (process.env.OLLAMA_BASE_URL || 'https://ollama.com/api').replace(/\/+$/, '');
+  const baseUrl = (process.env.OLLAMA_BASE_URL || 'https://api.ollama.com/v1').replace(/\/+$/, '');
 
   if (!apiKey) {
     return json(503, {
@@ -84,17 +91,19 @@ Rules:
       }),
     });
 
-    const payload = (await upstream.json().catch(() => ({}))) as {
-      message?: { content?: string };
-      response?: string;
-      choices?: Array<{ message?: { content?: string | Array<{ text?: string }> } }>;
-      error?: { message?: string };
-    };
+    const rawPayload = await upstream.text();
+    let payload: UpstreamPayload = {};
+    try {
+      payload = JSON.parse(rawPayload || '{}') as UpstreamPayload;
+    } catch {
+      payload = {};
+    }
 
     if (!upstream.ok) {
-      const upstreamMessage = payload.error?.message || `upstream error (${upstream.status})`;
+      const upstreamMessage = payload.error?.message || rawPayload || `upstream error (${upstream.status})`;
+      const statusCode = upstream.status >= 400 && upstream.status < 500 ? upstream.status : 502;
       console.error('strategist upstream error:', upstream.status, upstreamMessage);
-      return json(502, {
+      return json(statusCode, {
         error: `The Strategist is currently unavailable. Upstream details: ${upstream.status}: ${upstreamMessage}`,
       });
     }

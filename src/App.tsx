@@ -415,7 +415,7 @@ export default function App() {
               Official Site
             </a>
             <a
-              href="https://robertgreene.substack.com/"
+              href="https://dailyrobertgreene.substack.com/"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-orange-500 transition-colors"

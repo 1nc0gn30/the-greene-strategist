@@ -35,7 +35,7 @@ export const RESOURCE_LINKS: ResourceLink[] = [
   },
   {
     name: 'Mastery Substack',
-    url: 'https://robertgreene.substack.com/',
+    url: 'https://dailyrobertgreene.substack.com/',
     description: 'Long-form writing and recent essays.',
   },
   {

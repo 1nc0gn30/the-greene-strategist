@@ -4,6 +4,7 @@
 
 [functions]
   directory = "netlify/functions"
+  node_bundler = "esm"
 
 [[redirects]]
   from = "/api/strategist"
@@ -14,6 +15,12 @@
   from = "/*"
   to = "/index.html"
   status = 200
+  conditions = {Language = ["en"]}
+
+[[headers]]
+  for = "/api/strategist"
+  [headers.values]
+    X-Rate-Limit = "30"
 
 [[headers]]
   for = "/*"
@@ -21,3 +28,5 @@
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://the-greene-strategist.nealfrazier.tech; connect-src 'self' https://api.ollama.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"

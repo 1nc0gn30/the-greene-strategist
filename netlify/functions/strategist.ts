@@ -1,6 +1,7 @@
 type NetlifyEvent = {
   httpMethod: string;
   body: string | null;
+  headers?: Record<string, string>;
 };
 
 type RequestBody = {
@@ -17,43 +18,69 @@ type UpstreamPayload = {
   error?: { message?: string };
 };
 
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX_REQUESTS = 30;
+
+const ipCounts = new Map<string, { count: number; resetAt: number }>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = ipCounts.get(ip);
+  if (!entry || now >= entry.resetAt) {
+    ipCounts.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  entry.count += 1;
+  return entry.count > RATE_LIMIT_MAX_REQUESTS;
+}
+
 const json = (statusCode: number, body: Record<string, unknown>) => ({
   statusCode,
-  headers: {
-    'Content-Type': 'application/json; charset=utf-8',
-  },
+  headers: { "Content-Type": "application/json; charset=utf-8" },
   body: JSON.stringify(body),
 });
 
-export const handler = async (event: NetlifyEvent) => {
-  if (event.httpMethod !== 'POST') {
-    return json(405, { error: 'Method not allowed.' });
+export default async (event: NetlifyEvent) => {
+  if (event.httpMethod !== "POST") {
+    return json(405, { error: "Method not allowed." });
+  }
+
+  const clientIp = event.headers?.["x-nf-client-connection-ip"]
+    || event.headers?.["x-forwarded-for"]?.split(",")[0]
+    || "unknown";
+
+  if (isRateLimited(clientIp.trim())) {
+    return json(429, { error: "Rate limit exceeded. Please wait a moment before trying again." });
   }
 
   const apiKey = process.env.OLLAMA_API_KEY;
-  const model = process.env.OLLAMA_MODEL || 'gemma4';
-  const baseUrl = (process.env.OLLAMA_BASE_URL || 'https://api.ollama.com/v1').replace(/\/+$/, '');
+  const model = process.env.OLLAMA_MODEL || "gemma4";
+  const baseUrl = (process.env.OLLAMA_BASE_URL || "https://api.ollama.com/v1").replace(/\/+$/, "");
 
   if (!apiKey) {
     return json(503, {
-      error: 'The Strategist chat is coming soon on this deployment. Join the waitlist for launch updates.',
+      error: "The Strategist chat is coming soon on this deployment. Join the waitlist for launch updates.",
     });
   }
 
   let body: RequestBody;
   try {
-    body = JSON.parse(event.body || '{}') as RequestBody;
+    body = JSON.parse(event.body || "{}") as RequestBody;
   } catch {
-    return json(400, { error: 'Invalid JSON request body.' });
+    return json(400, { error: "Invalid JSON request body." });
   }
 
   const prompt = body.prompt?.trim();
   const bookTitle = body.bookTitle?.trim();
-  const bookSummary = body.bookSummary?.trim() || '';
-  const bookAnalysis = body.bookAnalysis?.trim() || '';
+  const bookSummary = body.bookSummary?.trim() || "";
+  const bookAnalysis = body.bookAnalysis?.trim() || "";
 
   if (!prompt || !bookTitle) {
-    return json(400, { error: 'prompt and bookTitle are required.' });
+    return json(400, { error: "prompt and bookTitle are required." });
+  }
+
+  if (prompt.length > 2000) {
+    return json(400, { error: "Prompt too long. Please keep messages under 2000 characters." });
   }
 
   const systemInstruction = `You are "The Strategist," an AI expert on Robert Greene's works.
@@ -71,13 +98,15 @@ Rules:
 - Use Markdown formatting where useful.`;
 
   try {
-    const useOpenAICompat = baseUrl.endsWith('/v1');
-    const endpoint = useOpenAICompat ? `${baseUrl}/chat/completions` : `${baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`}/chat`;
+    const useOpenAICompat = baseUrl.endsWith("/v1");
+    const endpoint = useOpenAICompat
+      ? `${baseUrl}/chat/completions`
+      : `${baseUrl.endsWith("/api") ? baseUrl : `${baseUrl}/api`}/chat`;
 
     const upstream = await fetch(endpoint, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
@@ -85,8 +114,8 @@ Rules:
         stream: false,
         temperature: 0.7,
         messages: [
-          { role: 'system', content: systemInstruction },
-          { role: 'user', content: prompt },
+          { role: "system", content: systemInstruction },
+          { role: "user", content: prompt },
         ],
       }),
     });
@@ -94,7 +123,7 @@ Rules:
     const rawPayload = await upstream.text();
     let payload: UpstreamPayload = {};
     try {
-      payload = JSON.parse(rawPayload || '{}') as UpstreamPayload;
+      payload = JSON.parse(rawPayload || "{}") as UpstreamPayload;
     } catch {
       payload = {};
     }
@@ -102,25 +131,25 @@ Rules:
     if (!upstream.ok) {
       const upstreamMessage = payload.error?.message || rawPayload || `upstream error (${upstream.status})`;
       const statusCode = upstream.status >= 400 && upstream.status < 500 ? upstream.status : 502;
-      console.error('strategist upstream error:', upstream.status, upstreamMessage);
+      console.error("strategist upstream error:", upstream.status, upstreamMessage);
       return json(statusCode, {
-        error: `The Strategist is currently unavailable. Upstream details: ${upstream.status}: ${upstreamMessage}`,
+        error: `The Strategist is currently unavailable. Please try again later.`,
       });
     }
 
     const openAIContent = payload.choices?.[0]?.message?.content;
     const openAIText =
-      typeof openAIContent === 'string'
+      typeof openAIContent === "string"
         ? openAIContent
         : Array.isArray(openAIContent)
-          ? openAIContent.map((part) => part.text || '').join('')
-          : '';
-    const text = (payload.message?.content || payload.response || openAIText || '').trim();
-    return json(200, { text: text || 'No response generated.' });
+          ? openAIContent.map((part) => part.text || "").join("")
+          : "";
+    const text = (payload.message?.content || payload.response || openAIText || "").trim();
+    return json(200, { text: text || "No response generated." });
   } catch (error) {
-    console.error('strategist function error:', error);
+    console.error("strategist function error:", error);
     return json(502, {
-      error: 'The Strategist is currently unavailable. Check OLLAMA_API_KEY, OLLAMA_BASE_URL, and OLLAMA_MODEL.',
+      error: "The Strategist is currently unavailable. Please try again later.",
     });
   }
 };

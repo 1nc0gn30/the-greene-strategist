@@ -1,3 +1,58 @@
+# the-greene-strategist
+
+A strategic profile of Robert Greene: biography, core philosophy, Greene method, complete bibliography, and trusted resources for deeper study.
+
+## Overview
+A strategic profile of Robert Greene: biography, core philosophy, Greene method, complete bibliography, and trusted resources for deeper study.
+
+## Tech Stack
+- React
+- Vite
+- Netlify (deployed)
+
+## Project Structure
+```
+the-greene-strategist/
+  - netlify
+  - public
+  - src
+  (40 files total)
+```
+
+## Getting Started
+
+### Prerequisites
+- Node.js (v18+)
+- npm or yarn
+
+### Installation
+```bash
+git clone https://github.com/1nc0gn30/the-greene-strategist.git
+cd the-greene-strategist
+npm install
+```
+
+### Development
+```bash
+npm run dev
+```
+
+### Build
+```bash
+npm run build
+```
+
+### Available Scripts
+  npm run dev - vite --port=3000 --host=0.0.0.0
+  npm run build - vite build
+  npm run preview - vite preview
+  npm run clean - rm -rf dist
+  npm run lint - tsc --noEmit
+
+## Original README
+<details>
+<summary>Click to expand original README</summary>
+
 <div align="center">
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
@@ -68,3 +123,29 @@ Error responses:
 ### Deployment behavior
 - The browser only calls `/api/strategist`.
 - The function uses the user-provided key for that request and does not require a Netlify provider API secret.
+
+</details>
+
+## TODO / Roadmap
+- [ ] Add unit tests
+- [ ] Add LICENSE file
+- [ ] Add Dockerfile for containerized deployment
+- [ ] Consider adding Tailwind CSS
+- [ ] Add CI/CD pipeline
+- [ ] Add contribution guidelines (CONTRIBUTING.md)
+- [ ] Improve error handling and edge cases
+- [ ] Add environment variable documentation
+- [ ] Update dependencies to latest versions
+- [ ] Add code comments and inline documentation
+
+## Deployment
+This project is deployed on Netlify. See netlify.toml for configuration.
+
+## Author
+**Neal Frazier** - [@AshAmplifies](https://github.com/1nc0gn30)
+
+## Links
+- GitHub: https://github.com/1nc0gn30/the-greene-strategist
+
+---
+*This README was enhanced as part of the neals-projects-2026 batch update.*

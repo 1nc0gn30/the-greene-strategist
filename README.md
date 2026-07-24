@@ -1,16 +1,28 @@
-# the-greene-strategist
+<!-- xonettn -->
+<div align="center">
+
+# ⚛️ The Greene Strategist
 
 A strategic profile of Robert Greene: biography, core philosophy, Greene method, complete bibliography, and trusted resources for deeper study.
 
-## Overview
+
+![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB) ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white) ![Netlify](https://img.shields.io/badge/Netlify-00C7B7?logo=netlify&logoColor=white)
+
+![Deploy](https://img.shields.io/badge/Deployed-Netlify-00C7B7?logo=netlify&logoColor=white)
+
+</div>
+
+---
+
+## 📋 Overview
 A strategic profile of Robert Greene: biography, core philosophy, Greene method, complete bibliography, and trusted resources for deeper study.
 
-## Tech Stack
+## 📦 Tech Stack
 - React
 - Vite
 - Netlify (deployed)
 
-## Project Structure
+## 🗂️ Project Structure
 ```
 the-greene-strategist/
   - netlify
@@ -19,37 +31,37 @@ the-greene-strategist/
   (40 files total)
 ```
 
-## Getting Started
+## 🚀 Getting Started
 
-### Prerequisites
+### 📋 Prerequisites
 - Node.js (v18+)
 - npm or yarn
 
-### Installation
+### 📦 Installation
 ```bash
 git clone https://github.com/1nc0gn30/the-greene-strategist.git
 cd the-greene-strategist
 npm install
 ```
 
-### Development
+### 💻 Development
 ```bash
 npm run dev
 ```
 
-### Build
+### 🔨 Build
 ```bash
 npm run build
 ```
 
-### Available Scripts
+### ⚙️ Available Scripts
   npm run dev - vite --port=3000 --host=0.0.0.0
   npm run build - vite build
   npm run preview - vite preview
   npm run clean - rm -rf dist
   npm run lint - tsc --noEmit
 
-## Original README
+## 📂 Original README
 <details>
 <summary>Click to expand original README</summary>
 
@@ -63,7 +75,7 @@ This contains everything you need to run your app locally.
 
 View your app in AI Studio: https://ai.studio/apps/5430aa62-476b-489e-bf39-96b7f59173f3
 
-## Run Locally
+## 🚀 Run Locally
 
 **Prerequisites:**  Node.js
 
@@ -115,18 +127,18 @@ Error responses:
 }
 ```
 
-### Local dev flow
+### 💻 Local dev flow
 1. Run `netlify dev`.
 2. Open the app via the Netlify dev URL so `/api/strategist` resolves to the function.
 3. In chat, choose provider, enter your own API key, and select a model.
 
-### Deployment behavior
+### 🚀 Deployment behavior
 - The browser only calls `/api/strategist`.
 - The function uses the user-provided key for that request and does not require a Netlify provider API secret.
 
 </details>
 
-## TODO / Roadmap
+## 📝 TODO / Roadmap
 - [ ] Add unit tests
 - [ ] Add LICENSE file
 - [ ] Add Dockerfile for containerized deployment
@@ -138,14 +150,22 @@ Error responses:
 - [ ] Update dependencies to latest versions
 - [ ] Add code comments and inline documentation
 
-## Deployment
+## 🚀 Deployment
 This project is deployed on Netlify. See netlify.toml for configuration.
 
-## Author
+## 👤 Author
 **Neal Frazier** - [@AshAmplifies](https://github.com/1nc0gn30)
 
-## Links
+## 🔗 Links
 - GitHub: https://github.com/1nc0gn30/the-greene-strategist
 
 ---
 *This README was enhanced as part of the neals-projects-2026 batch update.*
+
+---
+
+<div align="center">
+
+**[xonettn]** · Built by [Neal Frazier](https://github.com/1nc0gn30) · [@AshAmplifies](https://twitter.com/AshAmplifies)
+
+</div>
